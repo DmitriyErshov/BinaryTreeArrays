@@ -163,16 +163,16 @@ void Tree::deleteNode(int key, int rootTree)
     }
 }
 
-void Tree::shiftArray(int start)
-{
-    for (int i = start; i < size; i++)
-    {
-        tree.data[i] = tree.data[i + 1];
-        tree.parent[i] = tree.parent[i + 1];
-        tree.left[i] = tree.left[i + 1];
-        tree.right[i] = tree.right[i + 1];
-    }
-}
+//void Tree::shiftArray(int start)
+//{
+//    for (int i = start; i < size; i++)
+//    {
+//        tree.data[i] = tree.data[i + 1];
+//        tree.parent[i] = tree.parent[i + 1];
+//        tree.left[i] = tree.left[i + 1];
+//        tree.right[i] = tree.right[i + 1];
+//    }
+//}
 
 void Tree::deleteColumn(int n)
 {
@@ -189,4 +189,48 @@ int Tree::searchMin(int rootIndex)
     }
 
     return rootIndex;
+}
+
+
+
+void Tree::recPreOrderCalculateHeight(int node, int tempSize)
+{
+    if (node != -1) {
+        tempSize++;
+        recPreOrderCalculateHeight(tree.left[node], tempSize);
+        recPreOrderCalculateHeight(tree.right[node], tempSize);
+    }
+    else {
+        if (tempSize > treeHeight) {
+            treeHeight = tempSize;
+        }
+    }
+}
+
+
+
+int Tree::getTreeHeight()
+{
+    recPreOrderCalculateHeight(0, 0);
+    return treeHeight;
+}
+
+void Tree::printRec(int node, int h)
+{
+    if (node != -1)
+    {
+        printRec(tree.left[node], h + 1);
+
+        for (int i = 1; i <= h; i++)
+            cout << "\t";
+
+        cout << tree.data[node] << endl;
+
+        printRec(tree.right[node], h + 1);
+    }
+}
+
+void Tree::printTreeGraphic()
+{
+    printRec(0, treeHeight);
 }
