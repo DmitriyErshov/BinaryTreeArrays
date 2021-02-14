@@ -27,11 +27,11 @@ int Tree::findNodeIndex(int x)
 
 void Tree::addNode(int x)
 {
-	if (tree.data[0] != -1) {			//Если он не инициализирован,
-		addNode(0, x);		//то вызовется рекурсивная функция для добавления элемента.
+	if (tree.data[0] != -1) {			//Если корень инициализирован,
+		addNode(0, x);		            //то вызовется рекурсивная функция для добавления элемента.
 	}
-	else				                //Иначе Функция поместит новое значение:
-	{
+	else				                
+	{                                   //Иначе Функция поместит новое значение:
 		tree.data[0] = x;		        //инициализируется корневой элемент      
 	}
 
@@ -71,7 +71,7 @@ void Tree::addNode(int rootIndex, int x)
             tree.left[rootIndex] = size;		
         }
     }
-    else if (x > tree.data[rootIndex])		//Иначе Если новое ключевое значение не //меньше ключевого значения в узле 
+    else if (x >= tree.data[rootIndex])		//Иначе Если новое ключевое значение не //меньше ключевого значения в узле 
     {
         if (tree.right[rootIndex] != -1)		//И если правый указатель инициализирован,
             addNode(tree.right[rootIndex], x);		//То функция вызывает саму себя, для правого //потомка
@@ -82,97 +82,114 @@ void Tree::addNode(int rootIndex, int x)
             tree.right[rootIndex] = size;
         }
     }
-    else {
-        //т.к. метод addNode увеличивает размер дерева на 1, в случае добавления повторного элемента нужно сделать обратное действие в противовес
-        size--;
-    }
+    //раскоментировать для исключения добавления дубликатов
+    //else {
+    //    //т.к. метод addNode увеличивает размер дерева на 1, в случае добавления повторного элемента нужно сделать обратное действие в противовес
+    //    size--;
+    //}
 }
 
 void Tree::deleteNode(int key, int rootTree)
 {
     int searchedNodeIndex = findNodeIndex(key);
 
-    
+    if (searchedNodeIndex != -1)
+    {
+        //удаляемый элемент - корень
+        if (searchedNodeIndex == 0) {
+            if ((tree.left[searchedNodeIndex] != -1 && tree.right[searchedNodeIndex] == -1) ||
+                (tree.left[searchedNodeIndex] == -1 && tree.right[searchedNodeIndex] != -1)) {
+                //сместить массив влево
+                deleteColumn(searchedNodeIndex);
+                //убрать потомка
+                tree.parent[searchedNodeIndex] = -1;
+                shiftArray(searchedNodeIndex);
+            }
+            else if (tree.left[searchedNodeIndex] != -1 && tree.right[searchedNodeIndex] != -1) {
+                int minElemIndex = searchMin(tree.right[searchedNodeIndex]); //ищем минимальный элемент в левом 
+                int min = tree.data[minElemIndex];
+                deleteNode(min, rootTree); //удалим найденный элемент из поддерева, функция не уйдет в рекурсию, т.к.
+                                                                //если у минимального элемента не может быть двух потомков
+                tree.data[searchedNodeIndex] = min;//ставим его на место удаляемого узла
+            }
 
-    //удаляемый элемент - корень
-    if (searchedNodeIndex == 0) {
-        if ((tree.left[searchedNodeIndex] != -1 && tree.right[searchedNodeIndex] == -1) ||
-            (tree.left[searchedNodeIndex] == -1 && tree.right[searchedNodeIndex] != -1)) {
-            //сместить массив влево
-            //shiftArray(searchedNodeIndex);
-            deleteColumn(searchedNodeIndex);
-            //убрать потомка
-            tree.parent[searchedNodeIndex] = -1;
-            
         }
-        else if (tree.left[searchedNodeIndex] != -1 && tree.right[searchedNodeIndex] != -1) {
-            int minElemIndex = searchMin(tree.right[searchedNodeIndex]); //ищем минимальный элемент в левом 
+        //если найденный элемент без потомков
+        else if (tree.left[searchedNodeIndex] == -1 && tree.right[searchedNodeIndex] == -1) {
+
+            if (tree.left[tree.parent[searchedNodeIndex]] == searchedNodeIndex) {
+                //убрать из потомка
+                tree.left[tree.parent[searchedNodeIndex]] = -1;
+            }
+            else {
+                tree.right[tree.parent[searchedNodeIndex]] = -1;
+            }
+            deleteColumn(searchedNodeIndex);
+            shiftArray(searchedNodeIndex);
+        }
+        //элемент имеет только одного потомка слева
+        else if (tree.left[searchedNodeIndex] != -1 && tree.right[searchedNodeIndex] == -1) {
+            if (tree.left[tree.parent[searchedNodeIndex]] == searchedNodeIndex) {
+                tree.left[tree.parent[searchedNodeIndex]] = tree.left[searchedNodeIndex];
+            }
+            else {
+                tree.right[tree.parent[searchedNodeIndex]] = tree.left[tree.parent[searchedNodeIndex]];
+            }
+            tree.parent[tree.right[searchedNodeIndex]] = tree.parent[searchedNodeIndex];
+            deleteColumn(searchedNodeIndex);
+            shiftArray(searchedNodeIndex);
+        }
+        //элемент имеет только одного потомка справа
+        else if (tree.left[searchedNodeIndex] == -1 && tree.right[searchedNodeIndex] != -1)
+        {
+            //понять с какой стороны этот узел у потомка
+            if (tree.right[tree.parent[searchedNodeIndex]] == searchedNodeIndex) {
+                tree.right[tree.parent[searchedNodeIndex]] = tree.right[searchedNodeIndex];
+            }
+            else {
+                tree.left[tree.parent[searchedNodeIndex]] = tree.right[searchedNodeIndex];
+            }
+            tree.parent[tree.right[searchedNodeIndex]] = tree.parent[searchedNodeIndex];
+            deleteColumn(searchedNodeIndex);
+            shiftArray(searchedNodeIndex);
+        }
+        //элемент имеет два потомка
+        else {
+            int minElemIndex = searchMin(tree.right[searchedNodeIndex]); //ищем минимальный элемент в правом 
             int min = tree.data[minElemIndex];
             deleteNode(min, rootTree); //удалим найденный элемент из поддерева, функция не уйдет в рекурсию, т.к.
                                                             //если у минимального элемента не может быть двух потомков
             tree.data[searchedNodeIndex] = min;//ставим его на место удаляемого узла
         }
 
-    }
-    //если найденный элемент без потомков
-    else if (tree.left[searchedNodeIndex] == -1 && tree.right[searchedNodeIndex] == -1) {
-        
-        if (tree.left[tree.parent[searchedNodeIndex]] == searchedNodeIndex) {
-            //убрать из потомка
-            tree.left[tree.parent[searchedNodeIndex]] = -1;
-        }
-        else {
-            tree.right[tree.parent[searchedNodeIndex]] = -1;
-        }
-        //shiftArray(searchedNodeIndex);
-        deleteColumn(searchedNodeIndex);
-    }
-    //элемент имеет только одного потомка слева
-    else if (tree.left[searchedNodeIndex] != -1 && tree.right[searchedNodeIndex] == -1) {
-        if (tree.left[tree.parent[searchedNodeIndex]] == searchedNodeIndex) {
-            tree.left[tree.parent[searchedNodeIndex]] = tree.left[searchedNodeIndex];
-        }
-        else {
-            tree.right[tree.parent[searchedNodeIndex]] = tree.left[tree.parent[searchedNodeIndex]];
-        }
-        tree.parent[tree.right[searchedNodeIndex]] = tree.parent[searchedNodeIndex];
-        //shiftArray(searchedNodeIndex);
-        deleteColumn(searchedNodeIndex);
-    }
-    //элемент имеет только одного потомка справа
-    else if (tree.left[searchedNodeIndex] == -1 && tree.right[searchedNodeIndex] != -1)
-    {
-        //понять с какой стороны этот узел у потомка
-        if (tree.right[tree.parent[searchedNodeIndex]] == searchedNodeIndex) {
-            tree.right[tree.parent[searchedNodeIndex]] = tree.right[searchedNodeIndex];
-        }
-        else {
-            tree.left[tree.parent[searchedNodeIndex]] = tree.right[searchedNodeIndex];
-        }
-        tree.parent[tree.right[searchedNodeIndex]] = tree.parent[searchedNodeIndex];
-        //shiftArray(searchedNodeIndex);
-        deleteColumn(searchedNodeIndex);
-    }
-    //элемент имеет два потомка
-    else {
-        int minElemIndex = searchMin(tree.right[searchedNodeIndex]); //ищем минимальный элемент в правом 
-        int min = tree.data[minElemIndex];
-        deleteNode(min, rootTree); //удалим найденный элемент из поддерева, функция не уйдет в рекурсию, т.к.
-                                                        //если у минимального элемента не может быть двух потомков
-        tree.data[searchedNodeIndex] = min;//ставим его на место удаляемого узла
+
     }
 }
 
-//void Tree::shiftArray(int start)
-//{
-//    for (int i = start; i < size; i++)
-//    {
-//        tree.data[i] = tree.data[i + 1];
-//        tree.parent[i] = tree.parent[i + 1];
-//        tree.left[i] = tree.left[i + 1];
-//        tree.right[i] = tree.right[i + 1];
-//    }
-//}
+void Tree::shiftArray(int start)
+{
+    for (int i = start; i < size; i++)
+    {
+        tree.data[i] = tree.data[i + 1];
+        tree.parent[i] = tree.parent[i + 1];
+        tree.left[i] = tree.left[i + 1];
+        tree.right[i] = tree.right[i + 1];
+
+        //т.к. мы смещаем данные, то должны переписать индексы узлов в их родителях
+        int p = tree.parent[i];
+        if (tree.left[p] == i) {
+            tree.left[p]--;
+        }
+        else if (tree.left[p] == i) {
+            tree.right[p]--;
+        }
+    }
+
+    tree.data[size] = -1;
+    tree.parent[size] = -1;
+    tree.left[size] = -1;
+    tree.right[size] = -1;
+}
 
 void Tree::deleteColumn(int n)
 {
@@ -207,6 +224,25 @@ void Tree::recPreOrderCalculateHeight(int node, int tempSize)
     }
 }
 
+int Tree::__heightRec(int node)
+{
+    return node == -1 ? -1 : 1 + std::max(__heightRec(tree.left[node]), __heightRec(tree.right[node]));
+}
+
+void Tree::generateRandomTree(int numberOfNodes, int minKey, int maxKey)
+{
+    for (int i = 0; i < numberOfNodes; i++)
+    {
+        int newNode = minKey + (rand() % (maxKey - minKey + 1));
+        addNode(newNode);
+    }
+}
+
+int Tree::heightRec()
+{
+    return __heightRec(0);
+}
+
 
 
 int Tree::getTreeHeight()
@@ -232,5 +268,6 @@ void Tree::printRec(int node, int h)
 
 void Tree::printTreeGraphic()
 {
+    treeHeight = getTreeHeight();
     printRec(0, treeHeight);
 }

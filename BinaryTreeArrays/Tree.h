@@ -19,6 +19,7 @@ class Tree
 private:
 	treeArray tree;
 
+
 	int size = 0;
 	int treeHeight = 0;
 	//конструктор инициализирует дерево нулями
@@ -26,11 +27,12 @@ private:
 	int findNodeIndex(int x);
 	void addNode(int rootTree, int x);
 	void deleteNode(int key, int rootTree);
-	//void shiftArray(int start);
+	void shiftArray(int start);
 	void deleteColumn(int n);
 	int searchMin(int rootIndex);
 	void printRec(int node, int h);
 	void recPreOrderCalculateHeight(int node, int tempSize);
+	int __heightRec(int node);
 public:
 	Tree();
 	void addNode(int x);
@@ -38,5 +40,7 @@ public:
 	bool searchNode(int x);
 	void printTreeGraphic();
 	int getTreeHeight();
+	void generateRandomTree(int numberOfNodes, int minKey, int maxKey);
+	int heightRec(); // вычисление высоты дерева
 };
 
